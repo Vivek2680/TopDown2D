@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CarInput : MonoBehaviour
 {
+        
+    
     //Components
     Carcontroller carcontroller;
     void Awake()
@@ -15,8 +17,21 @@ public class CarInput : MonoBehaviour
     {
         Vector2 inputVector = Vector2.zero;
 
-        inputVector.x = Input.GetAxis("Horizontal");
-        inputVector.y = Input.GetAxis("Vertical");
+        // Get raw input
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+        
+        
+            
+        // Create input vector
+        inputVector = new Vector2(horizontalInput, verticalInput);
+        
+        // Normalize diagonal movement to prevent faster diagonal speed
+        // But preserve the original magnitude for partial inputs
+        if (inputVector.magnitude > 1f)
+        {
+            inputVector = inputVector.normalized;
+        }
 
         carcontroller.SetInputVector(inputVector);
     }

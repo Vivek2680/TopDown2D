@@ -10,6 +10,8 @@ public class Carcontroller : MonoBehaviour
     public float DriftFactor = 0.95f;
     public float maxSpeed = 20f;
 
+    public float inputSmoothingFactor = 5f;
+
     //Local Variable
     float AccelerasionInput = 0f;
     float SteeringInput = 0f;
@@ -21,12 +23,17 @@ public class Carcontroller : MonoBehaviour
     void Awake()
     {
         carRigidbody2D = GetComponent<Rigidbody2D>();
+        RotationAngle = transform.eulerAngles.z;
+
     }
 
     void FixedUpdate()
     {
+
+        velocityVsUp = Vector2.Dot(transform.up, carRigidbody2D.velocity); // ✅ Important!
         ApplyEngineForce();
         ApplySteering();
+        KillOrthogonalVelocity();
     }
     void ApplyEngineForce()
     {
@@ -57,7 +64,7 @@ public class Carcontroller : MonoBehaviour
     void ApplySteering()
     {
         //Limit the car ability to turn on input
-        float minSpeedBeforeAllowTurningFactor = (carRigidbody2D.velocity.magnitude / 8);
+        float minSpeedBeforeAllowTurningFactor = (carRigidbody2D.velocity.magnitude / 10);
         minSpeedBeforeAllowTurningFactor = Mathf.Clamp01(minSpeedBeforeAllowTurningFactor);
 
         // Udate the Rotation angle based on input
@@ -67,14 +74,17 @@ public class Carcontroller : MonoBehaviour
     }
 
     void KillOrthogonalVelocity()
-    {
-        Vector2 forwardVelocity = transform.up * Vector2.Dot(carRigidbody2D.velocity, transform.up);
-        Vector2 rightVelocity = transform.right * Vector2.Dot(carRigidbody2D.velocity, transform.right);
-        carRigidbody2D.velocity = forwardVelocity + rightVelocity * DriftFactor;
-    }
+{
+    Vector2 forwardVelocity = transform.up * Vector2.Dot(carRigidbody2D.velocity, transform.up);
+    Vector2 rightVelocity = transform.right * Vector2.Dot(carRigidbody2D.velocity, transform.right);
+
+    // Kill most of the sideways drift completely (arcade style)
+    carRigidbody2D.velocity = forwardVelocity + rightVelocity * 0.2f;
+}
+
     public void SetInputVector(Vector2 inputVector)
-    {
-        SteeringInput = inputVector.x;
-        AccelerasionInput = inputVector.y;
-    }
+{
+    SteeringInput = inputVector.x;
+    AccelerasionInput = inputVector.y;
+}
 }
